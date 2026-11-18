@@ -1,9 +1,11 @@
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
 #include "config.h"
+#include "disco.h"
 
 static void uso(const char *prog)
 {
@@ -13,6 +15,7 @@ static void uso(const char *prog)
 int main(int argc, char **argv)
 {
     config_t cfg;
+    disco_t *disco;
     uint64_t semilla_arg;
 
     memset(&cfg, 0, sizeof cfg);
@@ -37,6 +40,20 @@ int main(int argc, char **argv)
     }
 
     config_imprimir(&cfg, stdout);
-    printf("[Etapa 1] Configuracion lista. Aun no hay disco ni simulacion.\n");
+
+    /* total_bloques <= CFG_TOTAL_BLOQUES_MAX, cabe de sobra en uint32_t */
+    disco = disco_crear((uint32_t)cfg.total_bloques);
+    if (disco == NULL) {
+        fprintf(stderr, "No se pudo crear el disco virtual (memoria insuficiente).\n");
+        return EXIT_FAILURE;
+    }
+
+    printf("Disco virtual creado: %" PRIu32 " bloques (%" PRIu32 " libres, %" PRIu32 " ocupados)\n\n",
+           disco->total_bloques, disco_libres(disco), disco_ocupados(disco));
+    disco_imprimir_mapa(disco, stdout);
+
+    printf("\n[Etapa 2] Disco listo. Aun no hay archivos ni simulacion.\n");
+
+    disco_destruir(disco);
     return EXIT_SUCCESS;
 }
