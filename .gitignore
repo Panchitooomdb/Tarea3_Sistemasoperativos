@@ -1,0 +1,8 @@
+simulador
+simulador_debug
+tests/test_config
+*.o
+*.out
+core
+.vscode/
+.idea/
