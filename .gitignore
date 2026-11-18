@@ -1,6 +1,7 @@
 simulador
 simulador_debug
-tests/test_config
+tests/test_*
+!tests/test_*.c
 *.o
 *.out
 core
