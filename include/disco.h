@@ -7,12 +7,17 @@
 /* Valor de 'dueno' que indica bloque libre. Los IDs de archivo parten en 1. */
 #define DISCO_LIBRE 0u
 
+/* Marca de "sin siguiente" en la tabla de punteros (fin de cadena o bloque libre). */
+#define DISCO_FIN 0xFFFFFFFFu
+
 /* Disco virtual: un arreglo que dice, por cada bloque fisico, que archivo
  * lo ocupa (o DISCO_LIBRE). No se guardan datos reales. */
 typedef struct {
     uint32_t  total_bloques;
     uint32_t  libres;      /* contador mantenido en sincronia con 'dueno' */
     uint32_t *dueno;       /* dueno[i] = id del archivo duenyo del bloque i */
+    uint32_t *siguiente;   /* siguiente[i] = puntero guardado "dentro" del bloque i
+                              (lo usa la asignacion enlazada); DISCO_FIN si no hay */
 } disco_t;
 
 /* Crea un disco con todos los bloques libres. NULL si total==0 o no hay memoria. */
@@ -30,6 +35,13 @@ int disco_esta_libre(const disco_t *d, uint32_t bloque);
 
 /* Id del archivo duenyo; DISCO_LIBRE si esta libre o no existe. */
 uint32_t disco_dueno(const disco_t *d, uint32_t bloque);
+
+/* Puntero almacenado en el bloque. DISCO_FIN si es el ultimo, esta libre o no existe. */
+uint32_t disco_siguiente(const disco_t *d, uint32_t bloque);
+
+/* Escribe el puntero del bloque. 0 si ok; -1 si el bloque no existe o esta libre,
+ * o si 'sig' no es DISCO_FIN ni un bloque existente. */
+int disco_set_siguiente(disco_t *d, uint32_t bloque, uint32_t sig);
 
 /* Marca el bloque como ocupado por id_archivo.
  * 0 si ok; -1 si el bloque no existe, ya estaba ocupado o id_archivo es 0. */

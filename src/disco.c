@@ -19,10 +19,15 @@ disco_t *disco_crear(uint32_t total_bloques)
 
     /* calloc deja todo en 0 == DISCO_LIBRE */
     d->dueno = calloc(total_bloques, sizeof *d->dueno);
-    if (d->dueno == NULL) {
+    d->siguiente = malloc((size_t)total_bloques * sizeof *d->siguiente);
+    if (d->dueno == NULL || d->siguiente == NULL) {
+        free(d->dueno);
+        free(d->siguiente);
         free(d);
         return NULL;
     }
+    for (uint32_t i = 0; i < total_bloques; i++)
+        d->siguiente[i] = DISCO_FIN;
     d->total_bloques = total_bloques;
     d->libres = total_bloques;
     return d;
@@ -33,6 +38,7 @@ void disco_destruir(disco_t *d)
     if (d == NULL)
         return;
     free(d->dueno);
+    free(d->siguiente);
     free(d);
 }
 
@@ -53,6 +59,23 @@ uint32_t disco_dueno(const disco_t *d, uint32_t bloque)
     return d->dueno[bloque];
 }
 
+uint32_t disco_siguiente(const disco_t *d, uint32_t bloque)
+{
+    if (!disco_bloque_valido(d, bloque) || d->dueno[bloque] == DISCO_LIBRE)
+        return DISCO_FIN;
+    return d->siguiente[bloque];
+}
+
+int disco_set_siguiente(disco_t *d, uint32_t bloque, uint32_t sig)
+{
+    if (!disco_bloque_valido(d, bloque) || d->dueno[bloque] == DISCO_LIBRE)
+        return -1;
+    if (sig != DISCO_FIN && !disco_bloque_valido(d, sig))
+        return -1;
+    d->siguiente[bloque] = sig;
+    return 0;
+}
+
 int disco_ocupar(disco_t *d, uint32_t bloque, uint32_t id_archivo)
 {
     if (id_archivo == DISCO_LIBRE || !disco_esta_libre(d, bloque))
@@ -67,6 +90,7 @@ int disco_liberar(disco_t *d, uint32_t bloque)
     if (!disco_bloque_valido(d, bloque) || d->dueno[bloque] == DISCO_LIBRE)
         return -1;
     d->dueno[bloque] = DISCO_LIBRE;
+    d->siguiente[bloque] = DISCO_FIN;   /* un bloque libre no guarda punteros */
     d->libres++;
     return 0;
 }

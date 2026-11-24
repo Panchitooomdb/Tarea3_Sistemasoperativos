@@ -108,6 +108,33 @@ static void test_verificar_detecta_corrupcion(void)
     disco_destruir(d);
 }
 
+static void test_punteros(void)
+{
+    disco_t *d = disco_crear(10);
+    uint32_t i;
+    printf("test_punteros\n");
+
+    for (i = 0; i < 10; i++)
+        CHECK(disco_siguiente(d, i) == DISCO_FIN);       /* todo parte sin punteros */
+
+    CHECK(disco_set_siguiente(d, 2, 5) == -1);           /* bloque libre: no se puede */
+    disco_ocupar(d, 2, 1);
+    disco_ocupar(d, 5, 1);
+    CHECK(disco_set_siguiente(d, 2, 5) == 0);
+    CHECK(disco_siguiente(d, 2) == 5);
+    CHECK(disco_set_siguiente(d, 2, 10) == -1);          /* destino inexistente */
+    CHECK(disco_set_siguiente(d, 2, DISCO_FIN) == 0);    /* fin de cadena es valido */
+    CHECK(disco_set_siguiente(d, 99, 1) == -1);
+    CHECK(disco_siguiente(d, 99) == DISCO_FIN);
+
+    disco_set_siguiente(d, 2, 5);
+    CHECK(disco_liberar(d, 2) == 0);                     /* liberar borra el puntero */
+    CHECK(disco_siguiente(d, 2) == DISCO_FIN);
+    disco_ocupar(d, 2, 3);                               /* y al reutilizarlo parte limpio */
+    CHECK(disco_siguiente(d, 2) == DISCO_FIN);
+    disco_destruir(d);
+}
+
 static void leer_todo(FILE *f, char *buf, size_t tam)
 {
     size_t n;
@@ -155,6 +182,7 @@ int main(void)
     test_huecos_y_disco_lleno();
     test_verificar_detecta_corrupcion();
     test_mapa();
+    test_punteros();
     printf("\n%d comprobaciones, %d fallos\n", total, fallos);
     return fallos == 0 ? 0 : 1;
 }

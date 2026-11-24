@@ -14,6 +14,10 @@ typedef struct {
     /* Asignacion contigua: el archivo ocupa [inicio, inicio + largo) */
     uint32_t inicio;
     uint32_t largo;
+
+    /* Asignacion enlazada: primer bloque de la cadena. El resto se alcanza
+     * siguiendo los punteros guardados en el disco (disco_siguiente). */
+    uint32_t primero;
 } archivo_t;
 
 #endif
