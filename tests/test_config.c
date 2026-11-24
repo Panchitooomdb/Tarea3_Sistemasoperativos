@@ -96,6 +96,18 @@ static void test_lectura(void)
     CHECK(c.disco_mb == 100 && c.bloque_kb == 4 && c.mecanismo == ASIG_ENLAZADA);
     CHECK(c.archivo_min_kb == 10 && c.archivo_max_kb == 100);
 
+    /* Linea demasiado larga: se rechaza entera. Aqui "5" + 200 espacios + "9"
+     * NO debe leerse como 5; despues se acepta el "100" siguiente. */
+    {
+        char largo[400];
+        memset(largo, ' ', sizeof largo);
+        largo[0] = '5';
+        largo[201] = '9';
+        strcpy(largo + 202, "\n100\n4\ncontigua\n10\n100\n");
+        CHECK(leer_desde_texto(largo, &c) == 0);
+        CHECK(c.disco_mb == 100 && c.bloque_kb == 4);
+    }
+
     CHECK(leer_desde_texto("", &c) == -1);                    /* EOF inmediato */
     CHECK(leer_desde_texto("100\n4\ncontigua\n", &c) == -1);  /* EOF a medias */
 }

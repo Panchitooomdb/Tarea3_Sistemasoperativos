@@ -139,7 +139,9 @@ cfg_estado_t config_validar(config_t *cfg)
 
 /* ---------- Lectura interactiva ---------- */
 
-/* Lee una linea. Devuelve 0 ok, -1 en EOF. Descarta el resto si es muy larga. */
+/* Lee una linea. Devuelve 0 ok, -1 en EOF.
+ * Si la linea no cabe en el buffer, se descarta COMPLETA y se devuelve una
+ * linea vacia (que el parseo rechaza): asi nunca se interpreta solo un trozo. */
 static int leer_linea(FILE *in, char *buf, size_t tam)
 {
     if (fgets(buf, (int)tam, in) == NULL)
@@ -148,6 +150,7 @@ static int leer_linea(FILE *in, char *buf, size_t tam)
         int c;
         while ((c = fgetc(in)) != '\n' && c != EOF)
             ;
+        buf[0] = '\0';
     }
     return 0;
 }
