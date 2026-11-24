@@ -15,9 +15,15 @@ typedef struct {
     uint32_t inicio;
     uint32_t largo;
 
-    /* Asignacion enlazada: primer bloque de la cadena. El resto se alcanza
-     * siguiendo los punteros guardados en el disco (disco_siguiente). */
+    /* Enlazada: primer bloque de la cadena. Indexada: primer bloque INDICE.
+     * El resto se alcanza siguiendo los punteros del disco (disco_siguiente). */
     uint32_t primero;
+
+    /* Asignacion indexada. refs[j] = bloque fisico del bloque logico j, es decir,
+     * el contenido de los bloques indice. Es memoria dinamica del archivo: se
+     * libera SIEMPRE con indexada_liberar (no copiar el struct y liberar dos veces). */
+    uint32_t  n_indices;   /* cantidad de bloques indice */
+    uint32_t *refs;
 } archivo_t;
 
 #endif

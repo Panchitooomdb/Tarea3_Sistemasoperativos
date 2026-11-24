@@ -34,6 +34,11 @@ Pide: tamano del disco (MB), tamano de bloque (KB), mecanismo
   Usa los primeros bloques libres (sin exigir continuidad), por lo que NUNCA falla por
   fragmentacion externa. Los punteros se guardan en el disco (disco_siguiente) y las
   posiciones se localizan recorriendo la cadena: accesos = bloque_logico + 1.
+- Asignacion indexada: cada referencia ocupa 4 bytes; un bloque indice guarda
+  bloque/4 - 1 referencias a datos y su ultima entrada apunta al siguiente indice
+  ("indice enlazado"), asi un archivo grande usa varios indices encadenados.
+  Se reservan datos E indices (ambos cuentan como ocupados). Nunca falla por
+  fragmentacion externa. Accesos = (indices recorridos) + 1 bloque de datos.
 - Se cuentan accesos a bloques de DISCO, no operaciones en la RAM del simulador.
 
 ## Estado del desarrollo
@@ -42,7 +47,7 @@ Pide: tamano del disco (MB), tamano de bloque (KB), mecanismo
 - [x] Etapa 2: disco virtual
 - [x] Etapa 3: asignacion contigua
 - [x] Etapa 4: asignacion enlazada
-- [ ] Etapa 5: asignacion indexada
+- [x] Etapa 5: asignacion indexada
 - [ ] Etapa 6: eventos temporizados
 - [ ] Etapa 7: fragmentacion y estadisticas
 - [ ] Etapa 8: pruebas finales y documentacion definitiva
