@@ -23,6 +23,11 @@ typedef struct {
     uint32_t   eliminados;
     uint64_t   total_accesos; /* suma de accesos a disco de todas las busquedas */
     uint32_t   n_busquedas;   /* cantidad de busquedas hechas */
+
+    /* Registro de la fragmentacion externa (en porcentaje) */
+    double     frag_maxima;   /* el peor valor visto durante la simulacion */
+    double     frag_suma;     /* suma de todas las mediciones (para el promedio) */
+    uint32_t   frag_medidas;  /* cuantas veces se midio */
 } simulador_t;
 
 /* Crea el disco y deja todo en cero. 0 si ok, -1 si falla. */
@@ -41,5 +46,20 @@ int  simulador_eliminar_aleatorio(simulador_t *sim);
 
 /* Accede a una posicion al azar de un archivo al azar. 0 si ok, -1 si no habia. */
 int  simulador_acceder_aleatorio(simulador_t *sim);
+
+/* Fragmentacion externa actual, en porcentaje:
+ *     (bloques libres - mayor hueco contiguo) / bloques libres * 100
+ * 0% = todo el espacio libre esta junto. Si no hay bloques libres, vale 0. */
+double simulador_fragmentacion(const simulador_t *sim);
+
+/* Mide la fragmentacion, la anota en el registro y la devuelve. */
+double simulador_registrar_fragmentacion(simulador_t *sim);
+
+/* Muestra en pantalla como esta el disco ahora (usado, libres, huecos,
+ * fragmentacion). Tambien anota la fragmentacion en el registro. */
+void simulador_imprimir_estado(simulador_t *sim);
+
+/* Estadisticas finales de la simulacion. */
+void simulador_imprimir_estadisticas(const simulador_t *sim);
 
 #endif

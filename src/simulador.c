@@ -209,3 +209,64 @@ int simulador_acceder_aleatorio(simulador_t *sim)
            a->id, pos, acc.bloque_logico, acc.bloque_fisico, acc.accesos);
     return 0;
 }
+
+/* ---------- Fragmentacion externa y estadisticas ---------- */
+
+double simulador_fragmentacion(const simulador_t *sim)
+{
+    uint32_t libres = disco_libres(sim->disco);
+    uint32_t mayor = disco_mayor_libre_contiguo(sim->disco);
+
+    if (libres == 0)
+        return 0.0;
+    return (double)(libres - mayor) * 100.0 / (double)libres;
+}
+
+double simulador_registrar_fragmentacion(simulador_t *sim)
+{
+    double f = simulador_fragmentacion(sim);
+
+    if (f > sim->frag_maxima)
+        sim->frag_maxima = f;
+    sim->frag_suma += f;
+    sim->frag_medidas++;
+    return f;
+}
+
+void simulador_imprimir_estado(simulador_t *sim)
+{
+    uint32_t total = sim->disco->total_bloques;
+    uint32_t ocupados = disco_ocupados(sim->disco);
+    double frag = simulador_registrar_fragmentacion(sim);
+
+    printf("[ESTADO] ocupados %" PRIu32 "/%" PRIu32 " (%.1f%%), libres %" PRIu32
+           ", huecos %" PRIu32 ", mayor hueco %" PRIu32 ", fragmentacion externa %.1f%%\n",
+           ocupados, total, ocupados * 100.0 / total, disco_libres(sim->disco),
+           disco_cantidad_huecos(sim->disco), disco_mayor_libre_contiguo(sim->disco), frag);
+}
+
+void simulador_imprimir_estadisticas(const simulador_t *sim)
+{
+    uint32_t total = sim->disco->total_bloques;
+    uint32_t ocupados = disco_ocupados(sim->disco);
+    double prom_accesos = 0.0;
+    double frag_prom = 0.0;
+
+    if (sim->n_busquedas > 0)
+        prom_accesos = (double)sim->total_accesos / sim->n_busquedas;
+    if (sim->frag_medidas > 0)
+        frag_prom = sim->frag_suma / sim->frag_medidas;
+
+    printf("\n========== ESTADISTICAS FINALES ==========\n");
+    printf("Mecanismo de asignacion : %s\n", config_nombre_mecanismo(sim->cfg.mecanismo));
+    printf("Utilizacion del disco   : %" PRIu32 " de %" PRIu32 " bloques ocupados (%.1f%%)\n",
+           ocupados, total, ocupados * 100.0 / total);
+    printf("Archivos creados        : %" PRIu32 "\n", sim->creados);
+    printf("Archivos eliminados     : %" PRIu32 "\n", sim->eliminados);
+    printf("Archivos que quedaron   : %" PRIu32 "\n", sim->n_archivos);
+    printf("Fragmentacion externa   : final %.1f%%, maxima %.1f%%, promedio %.1f%%\n",
+           simulador_fragmentacion(sim), sim->frag_maxima, frag_prom);
+    printf("Busquedas realizadas    : %" PRIu32 "\n", sim->n_busquedas);
+    printf("Promedio de accesos     : %.2f accesos a disco por busqueda\n", prom_accesos);
+    printf("==========================================\n");
+}
